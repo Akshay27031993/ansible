@@ -1,0 +1,24 @@
+---
+  - name: Patch the server and Reboot
+    hosts: test1
+    become: yes
+    become_user: root
+    tasks:
+      - name: Reboot the server
+        tags: reboot
+        shell: "sleep 5 && reboot"
+        async: 1
+        poll: 0
+    
+      - name: Wait for the reboot to complete if there was a change.
+        wait_for_connection:
+          connect_timeout: 10
+          sleep: 5
+          delay: 5
+          timeout: 3600
+
+      - name: Check the Uptime of the servers
+        shell: "uptime&&df -PhT&&grubby --info=DEFAULT"
+        register: Uptime
+
+      - debug: var=Uptime.stdout_lines
